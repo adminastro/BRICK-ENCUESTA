@@ -357,18 +357,25 @@
                     <p class="text-gray-200">${recommendedPackage.description}</p>
                 </div>
                 <p class="mt-8 text-lg font-semibold">Dejanos tus datos y te contactaremos a la brevedad.</p>
-<form id="contactForm" class="mt-4 text-left grid grid-cols-1 gap-4"
-      action="https://getform.io/f/axozjkyb" method="POST">
-    <input type="text" name="nombre" placeholder="Tu Nombre" 
-           class="w-full p-3 rounded-md bg-gray-900 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500" required>
-    <input type="email" name="email" placeholder="Tu Email" 
-           class="w-full p-3 rounded-md bg-gray-900 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500" required>
-    <input type="tel" name="telefono" placeholder="Tu Teléfono / WhatsApp" 
-           class="w-full p-3 rounded-md bg-gray-900 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500">
-    <button type="submit" 
-            class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-4 rounded-lg text-lg transition-colors">
-        Enviar y Finalizar
-    </button>
+<form action="https://getform.io/f/axozjkyb" method="POST">
+    <input type="text" name="name">
+    <input type="email" name="email">
+    <input type="text" name="message">
+    <!-- add hidden Honeypot input to prevent spams -->
+    <input type="hidden" name="_gotcha" style="display:none !important">
+    <!-- checkbox handle -->
+    <input type="checkbox" name="subscribe" value="yes" checked>
+    <input type="hidden" name="subscribe" value="no">
+    <!-- radio button handle -->
+    <input type="radio" name="gender" value="male" checked>
+    <input type="radio" name="gender" value="female">
+    <input type="radio" name="gender" value="other">
+    <!-- select field handle -->
+    <select name="work-experience">
+        <option value="one-year">0-1 years</option>
+        <option value="one-five-years">1-5 years</option>
+    </select>
+    <button type="submit">Send</button>
 </form>
             `;
             
@@ -387,3 +394,4 @@
     </script>
 </body>
 </html>
+
