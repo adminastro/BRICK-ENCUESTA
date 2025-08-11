@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encuesta BRICK | Descubrí el Potencial de tu Marca</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .question-card {
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+        }
+        .question-card.hidden {
+            opacity: 0;
+            transform: translateY(20px);
+            pointer-events: none;
+            position: absolute;
+        }
+        .option-btn {
+            transition: all 0.2s ease;
+        }
+        .option-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .option-btn.selected {
+            background-color: #f97316; /* Orange-500 */
+            color: white;
+            border-color: #f97316;
+        }
+        .progress-bar-inner {
+            transition: width 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen p-4">
+    <div class="w-full max-w-2xl mx-auto">
+        <!-- Encabezado -->
+        <header class="text-center mb-6">
+            <h1 class="text-3xl md:text-4xl font-black tracking-tight text-orange-500">BRICK</h1>
+            <p class="text-gray-300">Descubrí el Potencial Audiovisual de tu Marca</p>
+        </header>
+
+        <!-- Barra de Progreso -->
+        <div class="w-full bg-gray-700 rounded-full h-2.5 mb-8">
+            <div id="progressBar" class="bg-orange-500 h-2.5 rounded-full" style="width: 0%"></div>
+        </div>
+
+        <main id="surveyContainer" class="relative">
+            <!-- Las preguntas se insertarán aquí dinámicamente -->
+        </main>
+        
+        <!-- Contenedor de Resultados -->
+        <div id="resultsContainer" class="hidden text-center bg-gray-800 p-8 rounded-lg shadow-2xl">
+            <!-- El resultado se insertará aquí -->
+        </div>
+    </div>
+
+    <script>
+        // --- DATOS DE LA ENCUESTA ---
+        const surveyData = [
+            {
+                id: 'welcome',
+                question: '¡Hola! Vamos a encontrar el plan de contenido perfecto para vos.',
+                text: 'Esta breve encuesta nos ayudará a entender exactamente qué necesitás para que tu contenido audiovisual brille. ¡Comencemos!',
+                type: 'intro',
+                next: 'rubro'
+            },
+            {
+                id: 'rubro',
+                question: 'Para empezar, ¿cuál es el rubro principal de tu negocio?',
+                type: 'single-choice',
+                options: [
+                    { text: 'Gastronomía', value: 'gastronomia', next: 'pregunta_gastro' },
+                    { text: 'Indumentaria y Accesorios', value: 'indumentaria', next: 'pregunta_indumentaria' },
+                    { text: 'Inmobiliaria / Real Estate', value: 'inmobiliaria', next: 'pregunta_inmobiliaria' },
+                    { text: 'Profesional / Marca Personal', value: 'profesional', next: 'pregunta_profesional_1' },
+                    { text: 'Otro (Servicios, Venta de Productos, etc.)', value: 'otro', next: 'contenido_actual' }
+                ]
+            },
+            // Ramificaciones
+            {
+                id: 'pregunta_gastro',
+                question: '¿Qué te gustaría mostrar con más urgencia?',
+                type: 'single-choice',
+                options: [
+                    { text: 'Fotos irresistibles de mis platos', value: 'fotos_platos' },
+                    { text: 'El ambiente y la experiencia del local', value: 'ambiente_local' },
+                    { text: 'El proceso en la cocina (detrás de escena)', value: 'proceso_cocina' },
+                    { text: 'Videos cortos y dinámicos (Reels)', value: 'reels_gastro' }
+                ],
+                next: 'contenido_actual'
+            },
+            {
+                id: 'pregunta_indumentaria',
+                question: '¿Qué tipo de contenido necesita tu marca ahora?',
+                type: 'single-choice',
+                options: [
+                    { text: 'Fotos de producto para tienda online', value: 'fotos_producto' },
+                    { text: 'Producciones de moda (lookbooks) con modelos', value: 'lookbooks' },
+                    { text: 'Videos cortos (Reels/TikTok) mostrando outfits', value: 'reels_moda' },
+                    { text: 'Un video que cuente la historia de la marca', value: 'brand_story' }
+                ],
+                next: 'contenido_actual'
+            },
+            {
+                id: 'pregunta_inmobiliaria',
+                question: '¿Qué contenido tendría más impacto para tus propiedades?',
+                type: 'single-choice',
+                options: [
+                    { text: 'Recorridos en video cinematográficos', value: 'video_recorrido' },
+                    { text: 'Tomas aéreas con drone', value: 'drone' },
+                    { text: 'Videos cortos destacando puntos fuertes', value: 'reels_inmo' },
+                    { text: 'Video institucional de la inmobiliaria', value: 'video_institucional' }
+                ],
+                next: 'contenido_actual'
+            },
+            {
+                id: 'pregunta_profesional_1',
+                question: '¿Cómo te gustaría compartir tu conocimiento?',
+                type: 'single-choice',
+                options: [
+                    { text: 'Con videos cortos y directos (tips, consejos)', value: 'videos_cortos' },
+                    { text: 'Con videos más elaborados y explicativos', value: 'videos_largos' },
+                    { text: 'En formato entrevista o podcast', value: 'podcast' },
+                    { text: 'Con un video de presentación profesional', value: 'video_presentacion' }
+                ],
+                next: 'pregunta_profesional_2'
+            },
+            {
+                id: 'pregunta_profesional_2',
+                question: '¿Te sentís cómodo/a frente a la cámara?',
+                type: 'single-choice',
+                options: [
+                    { text: 'Sí, sin problemas', value: 'comodo_camara' },
+                    { text: 'Podría hacerlo, pero con guía', value: 'comodo_con_guia' },
+                    { text: 'Prefiero no aparecer (voz en off, etc.)', value: 'no_comodo_camara' }
+                ],
+                next: 'contenido_actual'
+            },
+            // Preguntas Generales
+            {
+                id: 'contenido_actual',
+                question: 'Actualmente, ¿ya tenés contenido audiovisual de tu marca?',
+                type: 'single-choice',
+                options: [
+                    { text: 'Sí, de calidad profesional y estoy conforme', value: 'profesional_conforme' },
+                    { text: 'Sí, profesional, pero se puede mejorar', value: 'profesional_mejorable' },
+                    { text: 'Sí, pero lo creo yo mismo (casero)', value: 'casero' },
+                    { text: 'No, estoy empezando desde cero', value: 'cero' }
+                ],
+                next: 'frecuencia_publicacion'
+            },
+            {
+                id: 'frecuencia_publicacion',
+                question: '¿Con qué frecuencia publicás contenido nuevo en redes?',
+                type: 'single-choice',
+                options: [
+                    { text: 'Casi todos los días', value: 'muy_frecuente' },
+                    { text: '2 a 4 veces por semana', value: 'frecuente' },
+                    { text: '1 vez por semana o menos', value: 'poco_frecuente' },
+                    { text: 'De forma muy irregular', value: 'irregular' }
+                ],
+                next: 'desafio'
+            },
+            {
+                id: 'desafio',
+                question: '¿Cuál es tu mayor desafío al crear contenido?',
+                type: 'multi-choice',
+                options: [
+                    { text: 'Falta de tiempo', value: 'tiempo' },
+                    { text: 'Falta de ideas creativas', value: 'ideas' },
+                    { text: 'Falta de equipo técnico', value: 'equipo' },
+                    { text: 'El resultado no se ve profesional', value: 'calidad' },
+                    { text: 'No sé cómo comunicar mi valor', value: 'comunicacion' },
+                    { text: 'Me cuesta ser constante', value: 'constancia' }
+                ],
+                next: 'protagonista'
+            },
+            {
+                id: 'protagonista',
+                question: 'Pensando en el contenido ideal, ¿quién sería el protagonista?',
+                type: 'single-choice',
+                options: [
+                    { text: 'Yo mismo o alguien de mi equipo', value: 'yo_equipo' },
+                    { text: 'El producto/servicio (sin personas)', value: 'producto_solo' },
+                    { text: 'Nos gustaría contratar actores/modelos', value: 'actores' },
+                    { text: 'Un influencer o creador de contenido', value: 'influencer' }
+                ],
+                next: 'objetivo_principal'
+            },
+            {
+                id: 'objetivo_principal',
+                question: '¿Cuál es tu objetivo principal con este nuevo contenido?',
+                type: 'single-choice',
+                options: [
+                    { text: 'Aumentar las ventas directamente', value: 'ventas' },
+                    { text: 'Generar reconocimiento de marca', value: 'reconocimiento' },
+                    { text: 'Educar a mi audiencia', value: 'educar' },
+                    { text: 'Construir una comunidad fiel', value: 'comunidad' }
+                ],
+                next: 'end'
+            }
+        ];
+
+        // --- LÓGICA DE LA ENCUESTA ---
+        const surveyContainer = document.getElementById('surveyContainer');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const progressBar = document.getElementById('progressBar');
+        
+        let currentQuestionId = 'welcome';
+        const userAnswers = {};
+        let questionCount = 0;
+
+        function renderQuestion(id) {
+            const questionData = surveyData.find(q => q.id === id);
+            if (!questionData) {
+                showResults();
+                return;
+            }
+
+            // Ocultar preguntas anteriores
+            Array.from(surveyContainer.children).forEach(child => child.classList.add('hidden'));
+
+            const card = document.createElement('div');
+            card.className = 'question-card bg-gray-800 p-6 md:p-8 rounded-lg shadow-2xl w-full';
+            card.dataset.id = id;
+
+            let content = `<h2 class="text-xl md:text-2xl font-bold mb-4">${questionData.question}</h2>`;
+            
+            if(questionData.text) {
+                content += `<p class="text-gray-300 mb-6">${questionData.text}</p>`;
+            }
+
+            if (questionData.type === 'intro') {
+                content += `<button class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-4 rounded-lg text-lg transition-colors">Empezar</button>`;
+            } else if (questionData.type === 'single-choice') {
+                content += `<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">`;
+                questionData.options.forEach(opt => {
+                    content += `<button data-value="${opt.value}" data-next="${opt.next || questionData.next}" class="option-btn w-full text-left bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 px-5 rounded-lg border-2 border-gray-600">${opt.text}</button>`;
+                });
+                content += `</div>`;
+            } else if (questionData.type === 'multi-choice') {
+                content += `<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">`;
+                questionData.options.forEach(opt => {
+                    content += `<button data-value="${opt.value}" class="option-btn multi-choice w-full text-left bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 px-5 rounded-lg border-2 border-gray-600">${opt.text}</button>`;
+                });
+                content += `</div><button id="nextBtn" class="mt-6 w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-4 rounded-lg text-lg transition-colors">Siguiente</button>`;
+            }
+            
+            card.innerHTML = content;
+            surveyContainer.appendChild(card);
+            
+            // Forzar reflow para que la animación funcione
+            void card.offsetWidth;
+            card.classList.remove('hidden');
+
+            addEventListeners(card, questionData);
+            updateProgressBar();
+        }
+
+        function addEventListeners(card, questionData) {
+            if (questionData.type === 'intro') {
+                card.querySelector('button').addEventListener('click', () => {
+                    questionCount++;
+                    currentQuestionId = questionData.next;
+                    renderQuestion(currentQuestionId);
+                });
+            } else if (questionData.type === 'single-choice') {
+                card.querySelectorAll('.option-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        userAnswers[questionData.id] = btn.dataset.value;
+                        questionCount++;
+                        currentQuestionId = btn.dataset.next;
+                        renderQuestion(currentQuestionId);
+                    });
+                });
+            } else if (questionData.type === 'multi-choice') {
+                const selectedValues = new Set();
+                card.querySelectorAll('.multi-choice').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        btn.classList.toggle('selected');
+                        if (selectedValues.has(btn.dataset.value)) {
+                            selectedValues.delete(btn.dataset.value);
+                        } else {
+                            selectedValues.add(btn.dataset.value);
+                        }
+                    });
+                });
+                card.querySelector('#nextBtn').addEventListener('click', () => {
+                    userAnswers[questionData.id] = Array.from(selectedValues);
+                    questionCount++;
+                    currentQuestionId = questionData.next;
+                    renderQuestion(currentQuestionId);
+                });
+            }
+        }
+        
+        function updateProgressBar() {
+            const totalQuestions = surveyData.filter(q => q.type !== 'intro').length - 5; // Ajustar por ramificaciones
+            const progress = (questionCount / totalQuestions) * 100;
+            progressBar.style.width = `${Math.min(progress, 100)}%`;
+        }
+
+        function getRecommendedPackage() {
+            const answers = userAnswers;
+            
+            // Lógica para Producción de Impacto (máxima prioridad)
+            if (answers.contenido_actual === 'profesional_mejorable' || 
+                (answers.pregunta_indumentaria && ['lookbooks', 'brand_story'].includes(answers.pregunta_indumentaria)) ||
+                (answers.pregunta_inmobiliaria && ['video_recorrido', 'video_institucional'].includes(answers.pregunta_inmobiliaria)) ||
+                answers.objetivo_principal === 'reconocimiento') {
+                return {
+                    name: 'Producción de Impacto',
+                    description: 'Creamos una pieza audiovisual memorable que eleve el prestigio de tu marca y genere un impacto duradero. Ideal para videos de marca, comerciales o producciones de alto nivel.',
+                    icon: '🚀'
+                };
+            }
+
+            // Lógica para Crecimiento Constante
+            if ((answers.desafio && (answers.desafio.includes('tiempo') || answers.desafio.includes('constancia'))) ||
+                answers.frecuencia_publicacion === 'frecuente' ||
+                (answers.pregunta_profesional_1 && ['videos_cortos', 'videos_largos'].includes(answers.pregunta_profesional_1))) {
+                return {
+                    name: 'Crecimiento Constante (Suscripción)',
+                    description: 'Nos encargamos de que tengas material fresco y profesional todas las semanas. Ideal para olvidarte del estrés de crear contenido y mantener tus redes siempre activas.',
+                    icon: '📈'
+                };
+            }
+            
+            // Lógica para Impulso Inicial (por defecto)
+            return {
+                name: 'Impulso Inicial',
+                description: 'Te damos la base de contenido profesional que necesitás para empezar a comunicar tu valor, con un banco de imágenes y videos cortos para redes sociales.',
+                icon: '💡'
+            };
+        }
+
+        function showResults() {
+            progressBar.style.width = '100%';
+            surveyContainer.classList.add('hidden');
+            resultsContainer.classList.remove('hidden');
+
+            const recommendedPackage = getRecommendedPackage();
+
+            resultsContainer.innerHTML = `
+                <div class="text-5xl mb-4">${recommendedPackage.icon}</div>
+                <h2 class="text-2xl font-bold mb-2">¡Gracias por completar la encuesta!</h2>
+                <p class="text-gray-300 mb-6">Basado en tus respuestas, creemos que el plan perfecto para vos es:</p>
+                <div class="bg-gray-700 p-6 rounded-lg border border-orange-500">
+                    <h3 class="text-2xl font-extrabold text-orange-500 mb-2">${recommendedPackage.name}</h3>
+                    <p class="text-gray-200">${recommendedPackage.description}</p>
+                </div>
+                <p class="mt-8 text-lg font-semibold">Dejanos tus datos y te contactaremos a la brevedad.</p>
+<form id="contactForm" class="mt-4 text-left grid grid-cols-1 gap-4"
+      action="https://getform.io/f/axozjkyb" method="POST">
+    <input type="text" name="nombre" placeholder="Tu Nombre" 
+           class="w-full p-3 rounded-md bg-gray-900 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500" required>
+    <input type="email" name="email" placeholder="Tu Email" 
+           class="w-full p-3 rounded-md bg-gray-900 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500" required>
+    <input type="tel" name="telefono" placeholder="Tu Teléfono / WhatsApp" 
+           class="w-full p-3 rounded-md bg-gray-900 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500">
+    <button type="submit" 
+            class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-4 rounded-lg text-lg transition-colors">
+        Enviar y Finalizar
+    </button>
+</form>
+            `;
+            
+            document.getElementById('contactForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                resultsContainer.innerHTML = `
+                    <div class="text-5xl mb-4">✅</div>
+                    <h2 class="text-3xl font-bold text-orange-400">¡Recibido!</h2>
+                    <p class="text-gray-200 text-lg mt-4">Muchas gracias por tu tiempo. Un miembro del equipo de BRICK se pondrá en contacto con vos muy pronto.</p>
+                `;
+            });
+        }
+
+        // Iniciar la encuesta
+        renderQuestion(currentQuestionId);
+    </script>
+</body>
+</html>
